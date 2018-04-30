@@ -19,12 +19,14 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 
-[image1]: ./examples/undistort_output.png "Undistorted"
-[image2]: ./test_images/test1.jpg "Road Transformed"
-[image3]: ./examples/binary_combo_example.jpg "Binary Example"
-[image4]: ./examples/warped_straight_lines.jpg "Warp Example"
-[image5]: ./examples/color_fit_lines.jpg "Fit Visual"
-[image6]: ./examples/example_output.jpg "Output"
+[image1]: ./output_images/checker_original_v_undistorted.jpg "Checker Original vs Undistorted"
+[image2]: ./output_images/road_original_v_undistorted.jpg "Road Original vs Undistorted"
+[image3]: ./output_images/combined_binary_example.jpg "Combined Binary Example"
+[image4]: ./output_images/mask.jpg "Masked Image"
+[image5]: ./output_images/undistorted_src_points.jpg "Undistorted with Source Points"
+[image6]: ./output_images/warped_dst_points.jpg "Warped with Destination Points"
+[image7]: ./output_images/fit_poly.jpg "Fitted Polynomials"
+[image8]: ./output_images/highlighted_lane.jpg "Highlighted Lane"
 [video1]: ./project_video.mp4 "Video"
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/571/view) Points
@@ -43,11 +45,11 @@ You're reading it!
 
 #### 1. Briefly state how you computed the camera matrix and distortion coefficients. Provide an example of a distortion corrected calibration image.
 
-The code for this step is contained in the first code cell of the IPython notebook located in "./examples/example.ipynb" (or in lines # through # of the file called `some_file.py`).  
+The code for this step is contained in the cell # 2, 3 of the IPython notebook located in "./code.ipynb".
 
 I start by preparing "object points", which will be the (x, y, z) coordinates of the chessboard corners in the world. Here I am assuming the chessboard is fixed on the (x, y) plane at z=0, such that the object points are the same for each calibration image.  Thus, `objp` is just a replicated array of coordinates, and `objpoints` will be appended with a copy of it every time I successfully detect all chessboard corners in a test image.  `imgpoints` will be appended with the (x, y) pixel position of each of the corners in the image plane with each successful chessboard detection.  
 
-I then used the output `objpoints` and `imgpoints` to compute the camera calibration and distortion coefficients using the `cv2.calibrateCamera()` function.  I applied this distortion correction to the test image using the `cv2.undistort()` function and obtained this result: 
+I then used the output `objpoints` and `imgpoints` to compute the camera calibration and distortion coefficients using the `cal_undistort()` function defined in cell # 3 which in turn uses `cv2.calibrateCamera()` and `cv2.undistort()` functions.  I applied this distortion correction to the checkerboard test image and obtained this result: 
 
 ![alt text][image1]
 
@@ -55,68 +57,68 @@ I then used the output `objpoints` and `imgpoints` to compute the camera calibra
 
 #### 1. Provide an example of a distortion-corrected image.
 
-To demonstrate this step, I will describe how I apply the distortion correction to one of the test images like this one:
+I then used the same obtained objpoints and imgpoints with the function `cal_undistort()` on test image No. 5, and obtained this result:
 ![alt text][image2]
 
 #### 2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
 
-I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in `another_file.py`).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
+I used a combination of gradient thresholds, hue and value thresholds (in HSV space) to generate a binary image (thresholding steps in cell # 4, 6).  Here's an example of my output for this step.
 
 ![alt text][image3]
 
-#### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
-
-The code for my perspective transform includes a function called `warper()`, which appears in lines 1 through 8 in the file `example.py` (output_images/examples/example.py) (or, for example, in the 3rd code cell of the IPython notebook).  The `warper()` function takes as inputs an image (`img`), as well as source (`src`) and destination (`dst`) points.  I chose the hardcode the source and destination points in the following manner:
-
-```python
-src = np.float32(
-    [[(img_size[0] / 2) - 55, img_size[1] / 2 + 100],
-    [((img_size[0] / 6) - 10), img_size[1]],
-    [(img_size[0] * 5 / 6) + 60, img_size[1]],
-    [(img_size[0] / 2 + 55), img_size[1] / 2 + 100]])
-dst = np.float32(
-    [[(img_size[0] / 4), 0],
-    [(img_size[0] / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), 0]])
-```
-
-This resulted in the following source and destination points:
-
-| Source        | Destination   | 
-|:-------------:|:-------------:| 
-| 585, 460      | 320, 0        | 
-| 203, 720      | 320, 720      |
-| 1127, 720     | 960, 720      |
-| 695, 460      | 960, 0        |
-
-I verified that my perspective transform was working as expected by drawing the `src` and `dst` points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.
+I then defined a region of interest in cell # 10 and a function to mask images in cell # 11, and used it to apply a mask to filter out all irrelevant parts of the image, which would otherwise just confuse the algorithm. Here's an example of my output for this step.
 
 ![alt text][image4]
 
-#### 4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
+#### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
-Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:
+The code for my perspective transform includes a function called `bird_eye()`, which appears in cell # 14, which takes in an image, as well as source (`src`) and destination (`dst`) points from cell # 12, 13.  I fine tuned the source and destination points manually, by plotting the polygon formed by the four points for both the source and destination points, which lead to the following points.
+
+| Source        | Destination   | 
+|:-------------:|:-------------:| 
+| 85, 719       | 350, 719      | 
+| 575, 455      | 350, 100      |
+| 710, 455      | 950, 100      |
+| 1220, 719     | 950, 719      |
+
+I verified that my perspective transform was working as expected by testing on a straight line image, and drawing the `dst` points onto the warped counterpart to verify that the lines are parallel and perpendicular in the warped image.
 
 ![alt text][image5]
-
-#### 5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
-
-I did this in lines # through # in my code in `my_other_file.py`
-
-#### 6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
-
-I implemented this step in lines # through # in my code in `yet_another_file.py` in the function `map_lane()`.  Here is an example of my result on a test image:
-
 ![alt text][image6]
+
+#### 4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
+
+Then I used the convolution sliding window search method in cell # 16, with some modifications to enable the algorithm to just skip a layer and put None for the found window position, instead of having to always report the position of the highest convolution output which might very well be just noise, so I chosen a pixel threshold (in this case = 100, but it depends on the chosen window width and height), and in this case the windows are detected only if the highest convolution output exceeds that threshold.
+
+Then I defined a function in cell # 17 to get the x and y coordinates of the found windows and append them to left and right x & y coordinates lists (if window position is None then don't append anything for that layer for that side (left or light)).
+
+Lastly I fitted 2nd order polynomials in cell # 18 for each of the left and right lines based on their x & y coordinates lists. giving the output below.
+
+![alt text][image7]
+
+After that I defined a function in cell # 19 to search nonzero points around the fitted polynomials, which will be used for both coloring the lines in cell # 20, and as a second search algorithm that will be used in the pipeline after the lane lines are initially detected by the convolution window search algorithm, similarly the `get_coordinates()` function can be used again but on the found pixels instead of the found windows, and then 2nd order polynomials can be fitted around the found pixels.
+
+#### 5. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
+
+In cell # 21 I defined a function to highlight the area between the 2 fitted polynomials in green to clearly show the detected lane, then I warped it back in cell # 22 to the undistorted road image, by swaping the dst and src points in the same `bird_eye()` function. giving the below result
+
+![alt text][image8]
+
+#### 6. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
+
+In cell # 24 I defined a function to calculate the radius of curvature in meters, by refitting different polynomials after multiplying by the x & y scale correction factors, and then applying the radius of curvature equation.
+
+In cell # 25 I defined a function to calculate the offset of the vehicle by measuring the distance in pixels between the center of the lane and the center of the image and multiplying it by the scale correction factor in the x direction.
 
 ---
 
 ### Pipeline (video)
 
-#### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
+#### 1. In addition to the above, I defined the class that holds the lane line characteristics and history of detections, and a sanity check function that discards the detections that seems to be unreasonable by comparing that left and right curves radii and dismiss the detection if there is a big difference between the two, considering instead the last valid detection. I then used all of these functions in a single pipeline function and fed it the video images.
 
-Here's a [link to my video result](./project_video.mp4)
+#### 2. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
+
+Here's a [link to my video result](./project_video_output.mp4)
 
 ---
 
@@ -124,4 +126,8 @@ Here's a [link to my video result](./project_video.mp4)
 
 #### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+The algorithm doesn't work well in the shadowy part of the road, so I need to work on the color and gradient thresholds to make it more robust.
+
+I didn't face any wobbly lines problem, that's why I didn't consider averaging the detected curves over n previous frames.
+
+The sanity check function works well for discarding bad detections, however an improvement could be to perform the check on the left and right curves separately, as for example the left curve might be bad, but the right one might be perfectly good so no need to discard it.
