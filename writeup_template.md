@@ -114,7 +114,7 @@ In cell # 25 I defined a function to calculate the offset of the vehicle by meas
 
 ### Pipeline (video)
 
-#### 1. In addition to the above, I defined the class that holds the lane line characteristics and history of detections, and a sanity check function that discards the detections that seems to be unreasonable by comparing that left and right curves radii and dismiss the detection if there is a big difference between the two, considering instead the last valid detection. I then used all of these functions in a single pipeline function and fed it the video images.
+#### 1. In addition to the above, I defined the class that holds the lane line characteristics and history of detections, and a sanity check function that discards the detections that seems to be unreasonable by comparing the left and right radii on multiple equally spaced points and dismiss the detection if there is a big difference between the two radii, considering instead the last valid detection. I then used all of these functions in a single pipeline function and fed it the video images.
 
 #### 2. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
 
@@ -130,4 +130,4 @@ The algorithm doesn't work well in the shadowy part of the road, so I need to wo
 
 I didn't face any wobbly lines problem, that's why I didn't consider averaging the detected curves over n previous frames.
 
-The sanity check function works well for discarding bad detections, however an improvement could be to perform the check on the left and right curves separately, as for example the left curve might be bad, but the right one might be perfectly good so no need to discard it.
+The sanity check function works well for discarding bad detections, however an improvement could be to perform the check on the left and right curves separately, as for example the left curve might be bad, but the right one might be perfectly good so no need to discard it, however that will require more complex criteria like comparing to previous frames to know which of the curves is the bad one.
